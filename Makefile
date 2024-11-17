@@ -5,7 +5,7 @@ LDFLAGS=-target x86_64-unknown-windows  -nostdlib -Wl,-entry:efi_main -Wl,-subsy
 all:
 	clang $(CFLAGS) -c -o boot.o boot.c
 	clang $(CFLAGS) -c -o data.o data.c
-	clang $(LDFLAGS) -o boot.efi boot.o data.o
+	clang $(LDFLAGS) -o BOOTx64.efi boot.o data.o
 
 clean:
 	rm -f *.o *.efi *.img *.iso

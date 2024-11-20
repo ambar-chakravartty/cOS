@@ -15,8 +15,12 @@ $(DISK): $(BOOTLOADER_BIN) $(KERNEL_BIN)
 	# Mount the disk and copy files
 	mmd -i $(DISK) ::/EFI
 	mmd -i $(DISK) ::/EFI/BOOT
+	mmd -i $(DISK) ::/ThatOS64
 	mcopy -i $(DISK) $(BOOTLOADER_BIN) ::/EFI/BOOT/
-	mcopy -i $(DISK) $(KERNEL_BIN) ::/
+	mcopy -i $(DISK) boot/loader/loader.bin ::/ThatOS64/
+	
+debug_run:
+	qemu-system-x86_64 -L /usr/share/OVMF -pflash OVMF_CODE.fd -drive file=fat.img,format=raw -s -S
 
 run:
 	qemu-system-x86_64 -L /usr/share/OVMF -pflash OVMF_CODE.fd -drive file=fat.img,format=raw

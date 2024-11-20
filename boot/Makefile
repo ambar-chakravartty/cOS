@@ -1,19 +1,29 @@
-CC = clang
-LD = lld-link
-CFLAGS=-target x86_64-unknown-windows -ffreestanding -fshort-wchar -mno-red-zone -I/usr/include/efi -I/usr/include/efi/x86_64 -I/usr/include/efi/protocol
+# Makefile
+CC        :=gcc
+CFLAGS    :=-Wall -Werror -m64 -mabi=ms
+UNAME_S   :=$(shell uname -s)
 
-LDFLAGS=-target x86_64-unknown-windows -nostdlib -Wl,-entry:efi_main -Wl,-subsystem:efi_application -fuse-ld=lld-link
+ifeq ($(UNAME_S),Darwin)
+CC        :=x86_64-w64-mingw32-gcc
+endif
+ifeq ($(UNAME_S),Linux)
+CC        :=x86_64-w64-mingw32-gcc
+endif
 
+all: BOOTX64.EFI loader.bin
 
+%.o: %.c
+	$(CC) $(CFLAGS) -I ThatCLib -ffreestanding -c $< -o $@
 
-BOOTLOADER = BOOTX64.EFI
+BOOTX64.EFI: efimain.o
+	$(CC) $(CFLAGS) -nostdlib -shared -Wl,-dll -Wl,--subsystem,10 -e efi_main $^ -o $@
 
-all: $(BOOTLOADER)
-
-$(BOOTLOADER): bootloader.c
-	$(CC) $(CFLAGS) -c bootloader.c -o bootloader.o
-	clang $(CFLAGS) -c -o data.o data.c
-	clang $(LDFLAGS) bootloader.o data.o -o $(BOOTLOADER)
+loader.bin: loader/loader.c
+	$(CC) $(CFLAGS) -ffreestanding -Wl,--oformat=binary -e main -c $< -o loader/$@
 
 clean:
-	rm -f *.o *.EFI
+	@echo "Cleaning files...."
+	rm -f *.o *.EFI *.bin loader/*.bin
+	@echo "Done."
+
+.PHONY: clean
